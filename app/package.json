@@ -3,13 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:electron": "electron electron/main.js",
+    "dev": "concurrently -k \"npm run dev:frontend\" \"npm run dev:electron\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "electron": "^39.2.1"
   }
 }
