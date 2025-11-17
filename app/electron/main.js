@@ -12,6 +12,7 @@ function createWindow() {
     height: 800,
     icon: path.join(__dirname, '../public/Logo.png'),
     title: "",
+    frame: true,
     titleBarOverlay: {
   color: "#09090b",   // Hintergrund
   symbolColor: "#52525b" // Buttons
@@ -36,6 +37,8 @@ app.whenReady().then(createWindow);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
+
 
 
 app.commandLine.appendSwitch("disable-features", "SitePerProcess,VizDisplayCompositor");
