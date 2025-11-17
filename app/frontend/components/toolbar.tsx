@@ -14,14 +14,29 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TrafficCone, Minimize2, Maximize2, X } from "lucide-react";
 
+declare global {
+  interface Window {
+    electronAPI?: {
+      minimizeWindow: () => void;
+      maximizeWindow: () => void;
+      closeWindow: () => void;
+    };
+  }
+}
 export default function Toolbar() {
   return (
-    <div className="bg-[#2d2d30] border-b border-[#3e3e42]">
+    <div
+      className="bg-[#1e1e1e] border-b border-[#3e3e42] "
+      style={{ WebkitAppRegion: "drag" }}
+    >
       <div className="flex items-center h-10 px-0">
         <TrafficCone className="text-emerald-300 ml-3 mr-2" size={20} />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               File
             </button>
           </DropdownMenuTrigger>
@@ -50,7 +65,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Edit
             </button>
           </DropdownMenuTrigger>
@@ -75,7 +93,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Selection
             </button>
           </DropdownMenuTrigger>
@@ -95,7 +116,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               View
             </button>
           </DropdownMenuTrigger>
@@ -115,7 +139,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Go
             </button>
           </DropdownMenuTrigger>
@@ -133,7 +160,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Run
             </button>
           </DropdownMenuTrigger>
@@ -153,7 +183,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Terminal
             </button>
           </DropdownMenuTrigger>
@@ -173,7 +206,10 @@ export default function Toolbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center">
+            <button
+              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
+              style={{ WebkitAppRegion: "no-drag" }}
+            >
               Help
             </button>
           </DropdownMenuTrigger>
@@ -195,25 +231,43 @@ export default function Toolbar() {
 
         <div className="flex items-center space-x-1 mr-2">
           <button
+            onClick={() => {
+              if (window.electronAPI) {
+                window.electronAPI.minimizeWindow();
+              }
+            }}
             title="Minimize"
             aria-label="Minimize"
             className="p-1 h-8 w-8 flex items-center justify-center text-[#d4d4d4] hover:bg-[#3e3e42] rounded"
+            style={{ WebkitAppRegion: "no-drag" }}
           >
             <Minimize2 size={16} />
           </button>
 
           <button
+            onClick={() => {
+              if (window.electronAPI) {
+                window.electronAPI.maximizeWindow();
+              }
+            }}
             title="Maximize"
             aria-label="Maximize"
             className="p-1 h-8 w-8 flex items-center justify-center text-[#d4d4d4] hover:bg-[#3e3e42] rounded"
+            style={{ WebkitAppRegion: "no-drag" }}
           >
             <Maximize2 size={16} />
           </button>
 
           <button
+            onClick={() => {
+              if (window.electronAPI) {
+                window.electronAPI.closeWindow();
+              }
+            }}
             title="Close"
             aria-label="Close"
             className="p-1 h-8 w-8 flex items-center justify-center text-[#d4d4d4] hover:bg-[#b22222] hover:text-white rounded"
+            style={{ WebkitAppRegion: "no-drag" }}
           >
             <X size={16} />
           </button>

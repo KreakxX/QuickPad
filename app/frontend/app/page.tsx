@@ -3,6 +3,7 @@
 import EditorPage from "@/components/editor";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "@/components/toolbar";
+import BottomToolbar from "@/components/bottomtoolbar";
 import { message } from "./types/message";
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
@@ -91,7 +92,7 @@ export default function Home() {
   }, [code]);
 
   return (
-    <div className="w-[100vw] h-[100vh]">
+    <div className="w-[100vw] h-[100vh] overflow-hidden">
       <Toolbar></Toolbar>
       <EditorPage
         setLine={setLine}
@@ -101,6 +102,7 @@ export default function Home() {
         data={data}
         setText={setText}
       ></EditorPage>
+      <BottomToolbar></BottomToolbar>
     </div>
   );
 }

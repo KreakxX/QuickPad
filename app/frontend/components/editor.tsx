@@ -1,8 +1,7 @@
 import { message } from "@/app/types/message";
+import { editor } from "monaco-editor";
 import dynamic from "next/dynamic";
 import { useEffect, useReducer, useRef, useState } from "react";
-import * as monaco from "monaco-editor";
-
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
@@ -25,7 +24,9 @@ export default function EditorPage({
 }: EditorProps) {
   const handleMount = (editor: any, monaco: any) => {
     // Cursor Listener
+    monacoRef.current = monaco;
     editorRef.current = editor;
+
     editor.onDidChangeCursorPosition((e: any) => {
       const pos = editor.getPosition();
       setPosition(pos.column);
@@ -33,7 +34,9 @@ export default function EditorPage({
     });
   };
 
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<any>(null);
+
   const prevCodeRef = useRef("");
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export default function EditorPage({
       if (!editorRef.current) return;
 
       const editor = editorRef.current;
+      const monaco = monacoRef.current;
       const column = data.column;
       const text = data.text;
       const range = new monaco.Range(data.line, column, data.line, column);
@@ -77,11 +81,15 @@ export default function EditorPage({
       <MonacoEditor
         onMount={handleMount}
         height="100%"
-        defaultLanguage="javascript"
+        defaultLanguage="typescript"
         theme="vs-dark"
         value={code}
-        onChange={(v) => handleChange}
-        options={{ minimap: { enabled: true }, automaticLayout: true }}
+        path="file:///main.tsx"
+        onChange={(v) => handleChange(v ? v : "No Update")}
+        options={{
+          minimap: { enabled: true },
+          automaticLayout: true,
+        }}
       />
     </main>
   );

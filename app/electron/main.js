@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ipcMain } from 'electron';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,12 +13,14 @@ function createWindow() {
     height: 800,
     icon: path.join(__dirname, '../public/Logo.png'),
     title: "",
-    frame: true,
+    frame: false,
     titleBarOverlay: {
   color: "#09090b",   // Hintergrund
   symbolColor: "#52525b" // Buttons
 },
     webPreferences: {
+          preload: path.join(__dirname, 'preload.js'),
+
     contextIsolation: true,  
     sandbox: true,          
     nodeIntegration: false,  
@@ -38,8 +41,27 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+ipcMain.on("window-minimize", () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+})
 
+ipcMain.on("window-close", () => {  
+  if (mainWindow) {
+    mainWindow.close();
+  }
+})
 
+ipcMain.on("window-maximize", () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    } 
+    }
+})
 
 app.commandLine.appendSwitch("disable-features", "SitePerProcess,VizDisplayCompositor");
 app.commandLine.appendSwitch("disable-site-isolation-trials");
