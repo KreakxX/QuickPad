@@ -5,7 +5,8 @@ import { useEffect, useReducer, useRef, useState } from "react";
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
-
+import { shikiToMonaco } from '@shikijs/monaco';
+import { createHighlighter } from 'shiki';
 type EditorProps = {
   code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
@@ -22,10 +23,15 @@ export default function EditorPage({
   data,
   setText,
 }: EditorProps) {
-  const handleMount = (editor: any, monaco: any) => {
+  const handleMount = async (editor: any, monaco: any) => {
     // Cursor Listener
     monacoRef.current = monaco;
     editorRef.current = editor;
+ const highlighter = await createHighlighter({
+      themes: ['vitesse-dark'],
+      langs: ['typescript', 'tsx', 'javascript', 'jsx'],
+    });
+    shikiToMonaco(highlighter, monaco);
 
     editor.onDidChangeCursorPosition((e: any) => {
       const pos = editor.getPosition();
@@ -33,6 +39,8 @@ export default function EditorPage({
       setLine(pos.line);
     });
   };
+
+ 
 
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
@@ -48,7 +56,7 @@ export default function EditorPage({
       const column = data.column;
       const text = data.text;
       const range = new monaco.Range(data.line, column, data.line, column);
-
+      
       editor.executeEdits("", [
         {
           range,
@@ -82,14 +90,21 @@ export default function EditorPage({
         onMount={handleMount}
         height="100%"
         defaultLanguage="typescript"
-        theme="vs-dark"
         value={code}
-        path="file:///main.tsx"
+        theme="vs-dark"
         onChange={(v) => handleChange(v ? v : "No Update")}
         options={{
-          minimap: { enabled: true },
-          automaticLayout: true,
-        }}
+        minimap: { enabled: true },
+        automaticLayout: true,
+        wordWrap: "on",
+        formatOnType: true,
+        formatOnPaste: true,
+        autoClosingBrackets: "always",
+        autoClosingQuotes: "always",
+        suggest: { showKeywords: false, showSnippets: false },
+            renderValidationDecorations: "off", // wichtig: keine Fehler anzeigen
+
+      }}
       />
     </main>
   );

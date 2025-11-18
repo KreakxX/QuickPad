@@ -1,10 +1,11 @@
 "use client";
-
 import EditorPage from "@/components/editor";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "@/components/toolbar";
 import BottomToolbar from "@/components/bottomtoolbar";
+import XTermTerminal from "@/components/terminal";
 import { message } from "./types/message";
+
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
   const [sessionCode, setSessionCode] = useState<string>();
@@ -18,15 +19,27 @@ export default function Home() {
   
   console.log(greet("ChatGPT"));`);
 
+  const [isTerminalVisible, setIsTerminalVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && (e.key === "ö" || e.key === "Ö")) {
+        e.preventDefault();
+        setIsTerminalVisible((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   useEffect(() => {
     const connectToWebsocket = () => {
       try {
         const ws = new WebSocket("ws://localhost:8080");
         wsRef.current = ws;
-
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-
           const Message: message = {
             column: data.column,
             line: data.line,
@@ -34,7 +47,6 @@ export default function Home() {
           };
           setData(Message);
         };
-
         ws.onclose = () => {
           setTimeout(connectToWebsocket, 3000);
         };
@@ -58,7 +70,6 @@ export default function Home() {
           code: "123456",
         })
       );
-
       setSessionCode("123456");
     }
   };
@@ -92,17 +103,31 @@ export default function Home() {
   }, [code]);
 
   return (
-    <div className="w-[100vw] h-[100vh] overflow-hidden">
-      <Toolbar></Toolbar>
-      <EditorPage
-        setLine={setLine}
-        setPosition={setPosition}
-        code={code}
-        setCode={setCode}
-        data={data}
-        setText={setText}
-      ></EditorPage>
-      <BottomToolbar></BottomToolbar>
+    <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
+      <Toolbar />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div
+          className={`${isTerminalVisible ? "flex-1" : "h-full"} overflow-hidden`}
+        >
+          <EditorPage
+            setLine={setLine}
+            setPosition={setPosition}
+            code={code}
+            setCode={setCode}
+            data={data}
+            setText={setText}
+          />
+        </div>
+
+        {isTerminalVisible && (
+          <div className="h-[300px] border-t border-gray-700 bg-black">
+            <XTermTerminal />
+          </div>
+        )}
+      </div>
+
+      <BottomToolbar />
     </div>
   );
 }
