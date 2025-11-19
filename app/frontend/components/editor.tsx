@@ -47,36 +47,56 @@ export default function EditorPage({
       langs: ["typescript", "tsx", "javascript", "jsx", "python", "java", "go"],
     });
     shikiToMonaco(highlighter, monaco);
-
-    // Cursor Position Listener for shared Cursor
     editor.onDidChangeCursorPosition((e: any) => {
       const pos = editor.getPosition();
-      setCursorPosition(pos.column);
-      setCursorLine(pos.lineNumber);
+      setPosition(pos.column);
+      setLine(pos.lineNumber);
     });
 
-    editor.onDidChangeModelContent((event: any) => {
-      if (applyingRemoteRef.current) {
-        return;
-      }
+    editor.onDidChangeModelContent((e: any) => {
+      if (applyingRemoteRef.current) return;
 
-      event.changes.forEach((change: any) => {
-        const { range, rangeOffset, rangeLength, text } = change;
+      const model = editor.getModel();
+      for (const ch of e.changes) {
+        if (!ch.text) continue;
 
-        if (text.length > 0) {
-          setText(text);
-          setPosition(range.startColumn + text.length);
-          setLine(range.endLineNumber);
-        } else if (rangeLength > 0) {
-          setText("");
-          setPosition(range.startColumn);
-          setLine(range.startLineNumber);
+        const offset = ch.rangeOffset;
+        if (model) {
+          const pos = model.getPositionAt(offset);
+          setLine(pos.lineNumber);
+          setPosition(pos.column);
+        } else {
+          setPosition(offset);
         }
-      });
 
-      setCode(editor.getValue());
+        setText(ch.text);
+      }
     });
   };
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editor) return;
+    editor.deltaDecorations(
+      [],
+      [
+        {
+          range: new monaco.Range(
+            sharedCursorLine,
+            sharedCursorPosition,
+            sharedCursorLine,
+            sharedCursorPosition
+          ),
+          options: {
+            className: "my-cursor",
+            stickiness:
+              monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTyping,
+          },
+        },
+      ]
+    );
+  }, [sharedCursorLine]);
 
   useEffect(() => {
     const insertCode = () => {
