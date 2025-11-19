@@ -13,6 +13,10 @@ export default function Home() {
   const [position, setPosition] = useState<number>(0);
   const [data, setData] = useState<message>({ column: 0, line: 0, text: "T" });
   const [text, setText] = useState<string>("");
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
+  const [cursorLine, setCursorLine] = useState<number>(0);
+  const [sharedCursorLine, setSharedCursorLine] = useState<number>(0);
+  const [sharedCursorPosition, setSharedCursorPosition] = useState<number>(0);
   const [code, setCode] = useState<string>(`function greet(name) {
     return "Hello " + name + "!";
   }
@@ -40,12 +44,19 @@ export default function Home() {
         wsRef.current = ws;
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          const Message: message = {
-            column: data.column,
-            line: data.line,
-            text: data.text,
-          };
-          setData(Message);
+          console.log(data);
+          const action = data.action;
+          if (action == "cursor") {
+            setSharedCursorLine(data.cursorLine);
+            setSharedCursorPosition(data.cursorPosition);
+          } else {
+            const Message: message = {
+              column: data.column,
+              line: data.line,
+              text: data.text,
+            };
+            setData(Message);
+          }
         };
         ws.onclose = () => {
           setTimeout(connectToWebsocket, 3000);
@@ -100,7 +111,23 @@ export default function Home() {
       }
     };
     sendMessage();
-  }, [code]);
+  }, [text]);
+
+  useEffect(() => {
+    const sendCursorUpdate = () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            action: "cursor",
+            code: sessionCode,
+            cursorLine: cursorLine,
+            cursorPosition: cursorPosition,
+          })
+        );
+      }
+    };
+    sendCursorUpdate();
+  }, [cursorLine]);
 
   return (
     <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
@@ -108,9 +135,15 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div
-          className={`${isTerminalVisible ? "flex-1" : "h-full"} overflow-hidden`}
+          className={`${
+            isTerminalVisible ? "flex-1" : "h-full"
+          } overflow-hidden`}
         >
           <EditorPage
+            sharedCursorLine={sharedCursorLine}
+            sharedCursorPosition={sharedCursorPosition}
+            setCursorLine={setCursorLine}
+            setCursorPosition={setCursorPosition}
             setLine={setLine}
             setPosition={setPosition}
             code={code}
@@ -127,7 +160,7 @@ export default function Home() {
         )}
       </div>
 
-      <BottomToolbar />
+      <BottomToolbar createSession={createSession} joinSession={joinSession} />
     </div>
   );
 }

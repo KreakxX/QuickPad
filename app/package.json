@@ -18,6 +18,7 @@
     "prettier": "^2.8.8"
   },
   "dependencies": {
+    "@convergencelabs/monaco-collab-ext": "^0.4.0",
     "@monaco-editor/react": "^4.7.0",
     "@shikijs/monaco": "^3.15.0",
     "shiki": "^3.15.0"
