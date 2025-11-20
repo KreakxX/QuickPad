@@ -1,3 +1,4 @@
+// editor.tsx - Fixed editor component
 import { message } from "@/app/types/message";
 import { editor } from "monaco-editor";
 import dynamic from "next/dynamic";
@@ -36,100 +37,89 @@ export default function EditorPage({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
   const applyingRemoteRef = useRef(false);
+  const decorationsRef = useRef<string[]>([]);
 
   const handleMount = async (editor: any, monaco: any) => {
     monacoRef.current = monaco;
     editorRef.current = editor;
 
-    // Shiki Syntax Highlighting Setup
     const highlighter = await createHighlighter({
       themes: ["vitesse-dark"],
       langs: ["typescript", "tsx", "javascript", "jsx", "python", "java", "go"],
     });
     shikiToMonaco(highlighter, monaco);
+
     editor.onDidChangeCursorPosition((e: any) => {
       const pos = editor.getPosition();
-      setPosition(pos.column);
-      setLine(pos.lineNumber);
+      if (pos) {
+        setCursorPosition(pos.column);
+        setCursorLine(pos.lineNumber);
+      }
     });
 
     editor.onDidChangeModelContent((e: any) => {
       if (applyingRemoteRef.current) return;
 
       const model = editor.getModel();
-      for (const ch of e.changes) {
-        if (!ch.text) continue;
+      if (!model) return;
 
-        const offset = ch.rangeOffset;
-        if (model) {
+      for (const ch of e.changes) {
+        if (!ch.text && ch.rangeLength > 0) {
+          const offset = ch.rangeOffset;
           const pos = model.getPositionAt(offset);
+
           setLine(pos.lineNumber);
           setPosition(pos.column);
-        } else {
-          setPosition(offset);
+
+          setText("");
+          continue;
         }
 
-        setText(ch.text);
+        if (ch.text) {
+          const offset = ch.rangeOffset;
+          const pos = model.getPositionAt(offset);
+
+          setLine(pos.lineNumber);
+          setPosition(pos.column);
+          setText(ch.text);
+        }
       }
     });
   };
 
   useEffect(() => {
+    if (!editorRef.current || !monacoRef.current) return;
+    if (!data.text) return;
+
     const editor = editorRef.current;
     const monaco = monacoRef.current;
-    if (!editor) return;
-    editor.deltaDecorations(
-      [],
-      [
-        {
-          range: new monaco.Range(
-            sharedCursorLine,
-            sharedCursorPosition,
-            sharedCursorLine,
-            sharedCursorPosition
-          ),
-          options: {
-            className: "my-cursor",
-            stickiness:
-              monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTyping,
-          },
-        },
-      ]
-    );
-  }, [sharedCursorLine]);
+    const model = editor.getModel();
+    if (!model) return;
 
-  useEffect(() => {
-    const insertCode = () => {
-      if (!editorRef.current || !monacoRef.current) return;
+    applyingRemoteRef.current = true;
 
-      const editor = editorRef.current;
-      const monaco = monacoRef.current;
-      const column = data.column;
-      const line = data.line;
-      const text = data.text;
-      const range = new monaco.Range(line, column, line, column);
+    try {
+      const range = new monaco.Range(
+        data.line,
+        data.column,
+        data.line,
+        data.column
+      );
 
-      applyingRemoteRef.current = true;
-
-      editor.executeEdits("", [
+      editor.executeEdits("remote", [
         {
           range,
-          text,
+          text: data.text,
           forceMoveMarkers: true,
         },
       ]);
 
-      editor.setPosition({
-        lineNumber: line,
-        column: column + (text?.length ?? 0),
-      });
-      editor.focus();
-
+      setCode(model.getValue());
+    } finally {
       setTimeout(() => {
         applyingRemoteRef.current = false;
       }, 0);
-    };
-    insertCode();
+    }
   }, [data]);
 
   return (
