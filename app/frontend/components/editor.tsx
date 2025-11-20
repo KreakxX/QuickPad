@@ -37,7 +37,6 @@ export default function EditorPage({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
   const applyingRemoteRef = useRef(false);
-  const decorationsRef = useRef<string[]>([]);
 
   const handleMount = async (editor: any, monaco: any) => {
     monacoRef.current = monaco;
@@ -65,13 +64,12 @@ export default function EditorPage({
 
       for (const ch of e.changes) {
         if (!ch.text && ch.rangeLength > 0) {
-          const offset = ch.rangeOffset;
-          const pos = model.getPositionAt(offset);
+          const { range } = ch;
 
-          setLine(pos.lineNumber);
-          setPosition(pos.column);
+          setLine(range.startLineNumber);
+          setPosition(range.startColumn);
 
-          setText("");
+          setText("\u200B");
           continue;
         }
 
@@ -99,20 +97,30 @@ export default function EditorPage({
     applyingRemoteRef.current = true;
 
     try {
-      const range = new monaco.Range(
+      const range = new monacoRef.current.Range(
         data.line,
         data.column,
         data.line,
-        data.column
+        data.column + 1
       );
 
-      editor.executeEdits("remote", [
-        {
-          range,
-          text: data.text,
-          forceMoveMarkers: true,
-        },
-      ]);
+      if (data.text == "\u200B") {
+        editor.executeEdits("remote", [
+          {
+            range,
+            text: "",
+            forceMoveMarkers: true,
+          },
+        ]);
+      } else {
+        editor.executeEdits("remote", [
+          {
+            range,
+            text: data.text,
+            forceMoveMarkers: true,
+          },
+        ]);
+      }
 
       setCode(model.getValue());
     } finally {
