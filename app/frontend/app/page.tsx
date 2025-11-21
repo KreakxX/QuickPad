@@ -3,7 +3,6 @@
 import EditorPage from "@/components/editor";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "@/components/toolbar";
-import BottomToolbar from "@/components/bottomtoolbar";
 import XTermTerminal from "@/components/terminal";
 import { message } from "./types/message";
 import FileBar from "@/components/filebar";
@@ -166,7 +165,12 @@ export default function Home() {
 
   return (
     <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
-      <Toolbar setFileName={setFileName} setFileContent={setFileContent} />
+      <Toolbar
+        createSession={createSession}
+        joinSession={joinSession}
+        setFileName={setFileName}
+        setFileContent={setFileContent}
+      />
       <FileBar fileName={fileName} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -195,8 +199,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      <BottomToolbar createSession={createSession} joinSession={joinSession} />
     </div>
   );
 }

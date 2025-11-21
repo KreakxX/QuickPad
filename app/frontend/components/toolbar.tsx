@@ -39,9 +39,16 @@ declare global {
 type toolbarProps = {
   setFileName: React.Dispatch<React.SetStateAction<string>>;
   setFileContent: React.Dispatch<React.SetStateAction<string>>;
+  createSession(): void;
+  joinSession(): void;
 };
 
-export default function Toolbar({ setFileName, setFileContent }: toolbarProps) {
+export default function Toolbar({
+  setFileName,
+  setFileContent,
+  createSession,
+  joinSession,
+}: toolbarProps) {
   const [RainbowIndex, setRainbowIndex] = useState(rainbow_colors.length - 1);
 
   const nextRainbowColor = () => {
@@ -92,7 +99,7 @@ export default function Toolbar({ setFileName, setFileContent }: toolbarProps) {
               New File
               <span className="ml-auto text-[#858585] text-xs">Ctrl+N</span>
             </DropdownMenuItem>
-            <input onChange={handleFile} type="file" accept=".txt,.js"></input>
+            <input onChange={handleFile} type="file" accept="*"></input>
             <span className="ml-auto text-[#858585] text-xs">Ctrl+O</span>
             <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
               Save File
@@ -169,11 +176,21 @@ export default function Toolbar({ setFileName, setFileContent }: toolbarProps) {
               Session
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
+            <DropdownMenuItem
+              onClick={() => {
+                createSession();
+              }}
+              className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1"
+            >
               Create new Session
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
+            <DropdownMenuItem
+              onClick={() => {
+                joinSession();
+              }}
+              className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1"
+            >
               Join Session
             </DropdownMenuItem>
           </DropdownMenuContent>
