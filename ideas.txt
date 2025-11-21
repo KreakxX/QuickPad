@@ -1,0 +1,9 @@
+shared Markers
+shared Cursors
+OT conflict free merging
+Auto Save
+Upload and Save File
+New File creation
+Terminal functionality with cd
+Terminal UI
+Button UI and overall Editor UI
