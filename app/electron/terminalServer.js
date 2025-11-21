@@ -3,18 +3,21 @@ import * as pty from 'node-pty';
 import WebSocket, { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8090 });
 
+let ptyProcess = null
 
 
 wss.on("connection", (ws)=>{
-    wss.on("meesage",(data) =>{
-        terminalBackend(ws)
+startTerminal(ws)
+    ws.on("meesage",(data) =>{
+         if (ptyProcess) {
+      ptyProcess.write(data);  
+    }
     })
 })
 
-function terminalBackend(ws){
+function startTerminal (ws){
 const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-
-const ptyProcess = pty.spawn(shell, [], {
+ ptyProcess = pty.spawn(shell, [], {
   name: 'xterm-color',
   cols: 80,
   rows: 30,
@@ -22,17 +25,9 @@ const ptyProcess = pty.spawn(shell, [], {
   env: process.env
 });
 
-ptyProcess.onData((data) => {
-  process.stdout.write(data);
-});
-
-ptyProcess.write('ls\r');
-ptyProcess.resize(100, 40);
-ptyProcess.write('ls\r');
-
-    broadToClient(ws)
-}
-
-function broadToClient(ws ,data){
+ptyProcess.onData((data)=>{
     ws.send(JSON.stringify(data))
+})
 }
+
+
