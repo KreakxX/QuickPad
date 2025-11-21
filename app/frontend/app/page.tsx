@@ -72,13 +72,9 @@ export default function Home() {
           }
         };
 
+        // try reconnecting after 3 seconds
         ws.onclose = () => {
-          console.log("WebSocket disconnected, reconnecting...");
           setTimeout(connectToWebsocket, 3000);
-        };
-
-        ws.onerror = (error) => {
-          console.error("WebSocket error:", error);
         };
       } catch (error) {
         console.log("Couldn't connect to websocket", error);
@@ -139,7 +135,7 @@ export default function Home() {
       }
     };
     sendMessage();
-  }, [text, line, column, sessionCode]);
+  }, [text, line, column]);
 
   useEffect(() => {
     if (!sessionCode) return;
@@ -151,7 +147,6 @@ export default function Home() {
             action: "cursor",
             code: sessionCode,
             userId: USER_ID,
-
             cursorLine: cursorLine,
             cursorPosition: cursorPosition,
           })
@@ -159,7 +154,7 @@ export default function Home() {
       }
     };
     sendCursorUpdate();
-  }, [cursorLine, cursorPosition, sessionCode]);
+  }, [cursorLine, cursorPosition]);
 
   return (
     <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
