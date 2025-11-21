@@ -27,8 +27,6 @@ export default function EditorPage({
   setCode,
   setPosition,
   setLine,
-  sharedCursorPosition,
-  sharedCursorLine,
   data,
   setText,
   setCursorLine,
@@ -62,9 +60,9 @@ export default function EditorPage({
       const model = editor.getModel();
       if (!model) return;
 
-      for (const ch of e.changes) {
-        if (!ch.text && ch.rangeLength > 0) {
-          const { range } = ch;
+      for (const change of e.changes) {
+        if (!change.text && change.rangeLength > 0) {
+          const { range } = change;
 
           setLine(range.startLineNumber);
           setPosition(range.startColumn);
@@ -73,13 +71,13 @@ export default function EditorPage({
           continue;
         }
 
-        if (ch.text) {
-          const offset = ch.rangeOffset;
+        if (change.text) {
+          const offset = change.rangeOffset;
           const pos = model.getPositionAt(offset);
 
           setLine(pos.lineNumber);
           setPosition(pos.column);
-          setText(ch.text);
+          setText(change.text);
         }
       }
     });
@@ -90,7 +88,6 @@ export default function EditorPage({
     if (!data.text) return;
 
     const editor = editorRef.current;
-    const monaco = monacoRef.current;
     const model = editor.getModel();
     if (!model) return;
 
@@ -135,7 +132,7 @@ export default function EditorPage({
       <MonacoEditor
         onMount={handleMount}
         height="100%"
-        defaultLanguage="javascript"
+        defaultLanguage="typescript"
         value={code}
         theme="vs-dark"
         options={{
@@ -144,8 +141,6 @@ export default function EditorPage({
           wordWrap: "on",
           formatOnType: true,
           formatOnPaste: true,
-          autoClosingBrackets: "always",
-          autoClosingQuotes: "always",
           suggest: { showKeywords: false, showSnippets: false },
           renderValidationDecorations: "off",
         }}
