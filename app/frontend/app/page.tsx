@@ -6,6 +6,8 @@ import Toolbar from "@/components/toolbar";
 import BottomToolbar from "@/components/bottomtoolbar";
 import XTermTerminal from "@/components/terminal";
 import { message } from "./types/message";
+import FileBar from "@/components/filebar";
+
 const USER_ID = Math.random().toString(36).substring(7);
 
 export default function Home() {
@@ -19,6 +21,8 @@ export default function Home() {
   const [cursorLine, setCursorLine] = useState<number>(1);
   const [sharedCursorLine, setSharedCursorLine] = useState<number>(1);
   const [sharedCursorPosition, setSharedCursorPosition] = useState<number>(1);
+  const [fileName, setFileName] = useState<string>("");
+  const [fileContent, setFileContent] = useState<string>("");
   const [code, setCode] = useState<string>(`function greet(name) {
     return "Hello " + name + "!";
   }
@@ -156,9 +160,14 @@ export default function Home() {
     sendCursorUpdate();
   }, [cursorLine, cursorPosition]);
 
+  useEffect(() => {
+    setCode(fileContent);
+  }, [fileContent]);
+
   return (
     <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
-      <Toolbar />
+      <Toolbar setFileName={setFileName} setFileContent={setFileContent} />
+      <FileBar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div

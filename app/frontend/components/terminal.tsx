@@ -7,26 +7,27 @@ import "@xterm/xterm/css/xterm.css";
 export default function XTermTerminal() {
   const containerRef = useRef(null);
   const termRef = useRef<Terminal | null>(null);
-  const wsRef = useRef<WebSocket | null>(null)
+  const wsRef = useRef<WebSocket | null>(null);
   const [terminalData, setTerminalData] = useState<string>("");
   const [terminalDataLocal, setTerminalDataLocal] = useState<string>("");
-  useEffect(()=>{
+  useEffect(() => {
     const ws = new WebSocket("ws://localhost:8090");
-        wsRef.current = ws;
-            ws.onmessage = (event) => {
-              const data = event.data
-              setTerminalData(JSON.parse(data)) 
-    }
-  },[])
+    wsRef.current = ws;
+    ws.onmessage = (event) => {
+      const data = event.data;
+      setTerminalData(JSON.parse(data));
+    };
+  }, []);
 
-
-  useEffect(()=>{
-    if(wsRef.current?.readyState == WebSocket.OPEN){
-      wsRef.current.send(JSON.stringify({
-        terminalDataLocal
-      }))
+  useEffect(() => {
+    if (wsRef.current?.readyState == WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          terminalDataLocal,
+        })
+      );
     }
-  },[terminalData])
+  }, [terminalData]);
   useEffect(() => {
     if (!containerRef.current) return;
 

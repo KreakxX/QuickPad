@@ -4,6 +4,9 @@ OT conflict free merging
 Auto Save
 Upload and Save File
 New File creation
+Button UI and overall Editor UI
+
+
+Remove Termial
 Terminal functionality with cd
 Terminal UI
-Button UI and overall Editor UI

@@ -13,6 +13,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TrafficCone, Minimize2, Maximize2, X } from "lucide-react";
+import { useState } from "react";
+
+const rainbow_colors = [
+  "text-red-400",
+  "text-orange-400",
+  "text-yellow-400",
+  "text-green-400",
+  "text-cyan-400",
+  "text-blue-400",
+  "text-purple-400",
+  "text-emerald-300",
+];
 
 declare global {
   interface Window {
@@ -23,14 +35,42 @@ declare global {
     };
   }
 }
-export default function Toolbar() {
+
+type toolbarProps = {
+  setFileName: React.Dispatch<React.SetStateAction<string>>;
+  setFileContent: React.Dispatch<React.SetStateAction<string>>;
+};
+
+export default function Toolbar({ setFileName, setFileContent }: toolbarProps) {
+  const [RainbowIndex, setRainbowIndex] = useState(rainbow_colors.length - 1);
+
+  const nextRainbowColor = () => {
+    setRainbowIndex((i) => (i + 1) % rainbow_colors.length);
+  };
+
+  const handleFile = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const fileName = file.name;
+    setFileContent(text);
+
+    setFileName(fileName);
+
+    console.log(text + "LORD Gay Kanne");
+  };
   return (
     <div
       className="bg-[#1e1e1e] border-b border-[#3e3e42] "
       style={{ WebkitAppRegion: "drag" }}
     >
       <div className="flex items-center h-10 px-0">
-        <TrafficCone className="text-emerald-300 ml-3 mr-2" size={20} />
+        <TrafficCone
+          className={rainbow_colors[RainbowIndex] + " ml-3 mr-2"}
+          size={20}
+          onClick={nextRainbowColor}
+          style={{ WebkitAppRegion: "no-drag", cursor: "pointer" }}
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -52,10 +92,8 @@ export default function Toolbar() {
               New File
               <span className="ml-auto text-[#858585] text-xs">Ctrl+N</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Open File
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+O</span>
-            </DropdownMenuItem>
+            <input onChange={handleFile} type="file" accept=".txt,.js"></input>
+            <span className="ml-auto text-[#858585] text-xs">Ctrl+O</span>
             <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
               Save File
               <span className="ml-auto text-[#858585] text-xs">Ctrl+S</span>
@@ -97,96 +135,6 @@ export default function Toolbar() {
               className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
               style={{ WebkitAppRegion: "no-drag" }}
             >
-              Selection
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">
-              Selection
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Select All
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
-              View
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">
-              View
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Explorer
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
-              Go
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">Go</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Go to Line
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
-              Run
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">
-              Run
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Start Debugging
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
               Terminal
             </button>
           </DropdownMenuTrigger>
@@ -210,7 +158,7 @@ export default function Toolbar() {
               className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
               style={{ WebkitAppRegion: "no-drag" }}
             >
-              Help
+              Session
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -218,11 +166,15 @@ export default function Toolbar() {
             className="bg-[#3c3c3c] border-[#3e3e42]"
           >
             <DropdownMenuLabel className="text-[#d4d4d4]">
-              Help
+              Session
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-[#3e3e42]" />
             <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              About
+              Create new Session
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-[#3e3e42]" />
+            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
+              Join Session
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
