@@ -136,6 +136,11 @@ export default function EditorPage({
         value={code}
         theme="vs-dark"
         options={{
+          lineDecorationsWidth: 8,
+          lineNumbersMinChars: 3,
+          glyphMargin: false,
+          folding: false,
+          renderFinalNewline: "on",
           minimap: { enabled: true },
           automaticLayout: true,
           wordWrap: "on",
@@ -143,6 +148,27 @@ export default function EditorPage({
           formatOnPaste: true,
           suggest: { showKeywords: false, showSnippets: false },
           renderValidationDecorations: "off",
+          smoothScrolling: true,
+          mouseWheelZoom: true,
+          cursorSmoothCaretAnimation: "on",
+          cursorBlinking: "smooth",
+          roundedSelection: true,
+          scrollBeyondLastLine: false,
+          scrollBeyondLastColumn: 5,
+          renderWhitespace: "selection",
+          renderLineHighlight: "line",
+          tabSize: 2,
+          insertSpaces: true,
+          detectIndentation: true,
+          bracketPairColorization: { enabled: true },
+          guides: { bracketPairs: true },
+          autoIndent: "full",
+          tabCompletion: "on",
+          copyWithSyntaxHighlighting: true,
+          links: true, // detect URLs
+          colorDecorators: true, // show color previews (#fff)
+          codeLens: false, // keep it lightweight
+          mouseWheelScrollSensitivity: 1,
         }}
       />
     </main>
