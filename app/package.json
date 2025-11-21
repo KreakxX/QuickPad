@@ -21,6 +21,7 @@
     "@convergencelabs/monaco-collab-ext": "^0.4.0",
     "@monaco-editor/react": "^4.7.0",
     "@shikijs/monaco": "^3.15.0",
+    "node-pty": "^1.0.0",
     "shiki": "^3.15.0"
   }
 }
