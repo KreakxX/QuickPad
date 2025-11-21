@@ -167,7 +167,7 @@ export default function Home() {
   return (
     <div className="w-[100vw] h-[100vh] overflow-hidden flex flex-col">
       <Toolbar setFileName={setFileName} setFileContent={setFileContent} />
-      <FileBar />
+      <FileBar fileName={fileName} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div
