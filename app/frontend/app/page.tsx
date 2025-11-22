@@ -3,7 +3,6 @@
 import EditorPage from "@/components/editor";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "@/components/toolbar";
-import XTermTerminal from "@/components/terminal";
 import { message } from "./types/message";
 import FileBar from "@/components/filebar";
 
@@ -27,20 +26,6 @@ export default function Home() {
   }
   
   console.log(greet("ChatGPT"));`);
-
-  const [isTerminalVisible, setIsTerminalVisible] = useState<boolean>(false);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && (e.key === "ö" || e.key === "Ö")) {
-        e.preventDefault();
-        setIsTerminalVisible((prev) => !prev);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   useEffect(() => {
     const connectToWebsocket = () => {
@@ -174,11 +159,7 @@ export default function Home() {
       <FileBar fileName={fileName} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div
-          className={`${
-            isTerminalVisible ? "flex-1" : "h-full"
-          } overflow-hidden`}
-        >
+        <div className={`${"h-full"} overflow-hidden`}>
           <EditorPage
             sharedCursorLine={sharedCursorLine}
             sharedCursorPosition={sharedCursorPosition}
@@ -192,12 +173,6 @@ export default function Home() {
             setText={setText}
           />
         </div>
-
-        {isTerminalVisible && (
-          <div className="h-[300px] border-t border-gray-700 bg-black">
-            <XTermTerminal />
-          </div>
-        )}
       </div>
     </div>
   );

@@ -61,10 +61,7 @@ export default function Toolbar({
     const text = await file.text();
     const fileName = file.name;
     setFileContent(text);
-
     setFileName(fileName);
-
-    console.log(text + "LORD Gay Kanne");
   };
   return (
     <div
@@ -104,57 +101,6 @@ export default function Toolbar({
             <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
               Save File
               <span className="ml-auto text-[#858585] text-xs">Ctrl+S</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
-              Edit
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">
-              Edit
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Undo
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+Z</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              Redo
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+Y</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="px-3 h-10 text-xs text-[#d4d4d4] hover:bg-[#3e3e42] transition-colors flex items-center"
-              style={{ WebkitAppRegion: "no-drag" }}
-            >
-              Terminal
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="bg-[#3c3c3c] border-[#3e3e42]"
-          >
-            <DropdownMenuLabel className="text-[#d4d4d4]">
-              Terminal
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-[#3e3e42]" />
-            <DropdownMenuItem className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1">
-              New Terminal
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -2,11 +2,7 @@ shared Markers
 shared Cursors
 OT conflict free merging
 Auto Save
-Upload and Save File
+Save File
 New File creation
-Button UI and overall Editor UI
+auto detect Code language
 
-
-Remove Termial
-Terminal functionality with cd
-Terminal UI
