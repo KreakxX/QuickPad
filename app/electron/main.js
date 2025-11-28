@@ -15,17 +15,17 @@ function createWindow() {
     title: "",
     frame: false,
     titleBarOverlay: {
-  color: "#09090b",   // Hintergrund
-  symbolColor: "#52525b" // Buttons
-},
+      color: "#09090b",   // Hintergrund
+      symbolColor: "#52525b" // Buttons
+    },
     webPreferences: {
-          preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
 
-    contextIsolation: true,  
-    sandbox: true,          
-    nodeIntegration: false,  
-    webviewTag: true,
-    partition: 'persist:main'   
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
+      webviewTag: true,
+      partition: 'persist:main'
     },
   });
 
@@ -47,7 +47,7 @@ ipcMain.on("window-minimize", () => {
   }
 })
 
-ipcMain.on("window-close", () => {  
+ipcMain.on("window-close", () => {
   if (mainWindow) {
     mainWindow.close();
   }
@@ -59,8 +59,8 @@ ipcMain.on("window-maximize", () => {
       mainWindow.unmaximize();
     } else {
       mainWindow.maximize();
-    } 
     }
+  }
 })
 
 app.commandLine.appendSwitch("disable-features", "SitePerProcess,VizDisplayCompositor");

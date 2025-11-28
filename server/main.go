@@ -54,7 +54,19 @@ func ws_handler(w http.ResponseWriter, r *http.Request) {
 
 		case "join":
 			session = joinSession(data["code"], conn)
-			fmt.Println("Session Joined")
+			if session != nil {
+				fmt.Println("Session Joined")
+				// Broadcast that a user has joined
+				joinMsg := map[string]string{
+					"action": "user_joined",
+					"userId": data["userId"],
+					"code":   data["code"],
+				}
+				jsonMsg, _ := json.Marshal(joinMsg)
+				broadcast(jsonMsg, data["code"])
+			} else {
+				fmt.Println("Session not found")
+			}
 
 		default:
 			broadcast(message, data["code"])

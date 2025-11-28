@@ -2,7 +2,7 @@
 import { message } from "@/app/types/message";
 import { editor } from "monaco-editor";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
@@ -12,12 +12,21 @@ import { createHighlighter } from "shiki";
 type EditorProps = {
   code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
-  setPosition: React.Dispatch<React.SetStateAction<number>>;
   setCursorPosition: React.Dispatch<React.SetStateAction<number>>;
   setCursorLine: React.Dispatch<React.SetStateAction<number>>;
-  setLine: React.Dispatch<React.SetStateAction<number>>;
+
+  setSelectionStartLine: React.Dispatch<React.SetStateAction<number>>;
+  setSelectionStartColumn: React.Dispatch<React.SetStateAction<number>>;
+  setSelectionEndLine: React.Dispatch<React.SetStateAction<number>>;
+  setSelectionEndColumn: React.Dispatch<React.SetStateAction<number>>;
+
+  sharedSelectionStartLine: number;
+  sharedSelectionStartColumn: number;
+  sharedSelectionEndLine: number;
+  sharedSelectionEndColumn: number;
+
+  onEdit: (line: number, column: number, endLine: number, endColumn: number, text: string) => void;
   data: message;
-  setText: React.Dispatch<React.SetStateAction<string>>;
   sharedCursorPosition: number;
   sharedCursorLine: number;
 };
@@ -25,16 +34,25 @@ type EditorProps = {
 export default function EditorPage({
   code,
   setCode,
-  setPosition,
-  setLine,
+  onEdit,
   data,
-  setText,
   setCursorLine,
   setCursorPosition,
+  setSelectionStartLine,
+  setSelectionStartColumn,
+  setSelectionEndLine,
+  setSelectionEndColumn,
+  sharedSelectionStartLine,
+  sharedSelectionStartColumn,
+  sharedSelectionEndLine,
+  sharedSelectionEndColumn,
+  sharedCursorLine,
+  sharedCursorPosition,
 }: EditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<any>(null);
   const applyingRemoteRef = useRef(false);
+  const decorationsRef = useRef<string[]>([]);
 
   const handleMount = async (editor: any, monaco: any) => {
     monacoRef.current = monaco;
@@ -54,6 +72,16 @@ export default function EditorPage({
       }
     });
 
+    editor.onDidChangeCursorSelection((e: any) => {
+      const selection = e.selection;
+      if (selection) {
+        setSelectionStartLine(selection.startLineNumber);
+        setSelectionStartColumn(selection.startColumn);
+        setSelectionEndLine(selection.endLineNumber);
+        setSelectionEndColumn(selection.endColumn);
+      }
+    });
+
     editor.onDidChangeModelContent((e: any) => {
       if (applyingRemoteRef.current) return;
 
@@ -61,31 +89,71 @@ export default function EditorPage({
       if (!model) return;
 
       for (const change of e.changes) {
-        if (!change.text && change.rangeLength > 0) {
-          const { range } = change;
-
-          setLine(range.startLineNumber);
-          setPosition(range.startColumn);
-
-          setText("\u200B");
-          continue;
-        }
-
-        if (change.text) {
-          const offset = change.rangeOffset;
-          const pos = model.getPositionAt(offset);
-
-          setLine(pos.lineNumber);
-          setPosition(pos.column);
-          setText(change.text);
-        }
+        const { range, text } = change;
+        onEdit(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn, text);
       }
     });
   };
 
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
-    if (!data.text) return;
+
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+
+    const newDecorations: editor.IModelDeltaDecoration[] = [];
+
+    if (sharedCursorLine > 0 && sharedCursorPosition > 0) {
+      newDecorations.push({
+        range: new monaco.Range(
+          sharedCursorLine,
+          sharedCursorPosition,
+          sharedCursorLine,
+          sharedCursorPosition
+        ),
+        options: {
+          className: "remote-cursor",
+          hoverMessage: { value: "Remote User" },
+        },
+      });
+    }
+
+    if (
+      sharedSelectionStartLine > 0 &&
+      sharedSelectionStartColumn > 0 &&
+      sharedSelectionEndLine > 0 &&
+      sharedSelectionEndColumn > 0
+    ) {
+      newDecorations.push({
+        range: new monaco.Range(
+          sharedSelectionStartLine,
+          sharedSelectionStartColumn,
+          sharedSelectionEndLine,
+          sharedSelectionEndColumn
+        ),
+        options: {
+          className: "remote-selection",
+        },
+      });
+    }
+
+    decorationsRef.current = editor.deltaDecorations(
+      decorationsRef.current,
+      newDecorations
+    );
+
+  }, [
+    sharedCursorLine,
+    sharedCursorPosition,
+    sharedSelectionStartLine,
+    sharedSelectionStartColumn,
+    sharedSelectionEndLine,
+    sharedSelectionEndColumn
+  ]);
+
+  useEffect(() => {
+    if (!editorRef.current || !monacoRef.current) return;
+    if (data.text === undefined) return;
 
     const editor = editorRef.current;
     const model = editor.getModel();
@@ -94,30 +162,23 @@ export default function EditorPage({
     applyingRemoteRef.current = true;
 
     try {
+      const endLine = data.endLine ?? data.line;
+      const endColumn = data.endColumn ?? data.column;
+
       const range = new monacoRef.current.Range(
         data.line,
         data.column,
-        data.line,
-        data.column + 1
+        endLine,
+        endColumn
       );
 
-      if (data.text == "\u200B") {
-        editor.executeEdits("remote", [
-          {
-            range,
-            text: "",
-            forceMoveMarkers: true,
-          },
-        ]);
-      } else {
-        editor.executeEdits("remote", [
-          {
-            range,
-            text: data.text,
-            forceMoveMarkers: true,
-          },
-        ]);
-      }
+      editor.executeEdits("remote", [
+        {
+          range,
+          text: data.text,
+          forceMoveMarkers: true,
+        },
+      ]);
 
       setCode(model.getValue());
     } finally {
@@ -129,6 +190,16 @@ export default function EditorPage({
 
   return (
     <main className="h-[100vh] w-[100vw] bg-zinc-950">
+      <style jsx global>{`
+        .remote-cursor {
+          background-color: #ff0000;
+          width: 2px !important;
+          height: 100% !important;
+        }
+        .remote-selection {
+          background-color: rgba(255, 0, 0, 0.3);
+        }
+      `}</style>
       <MonacoEditor
         onMount={handleMount}
         height="100%"
