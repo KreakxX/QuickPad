@@ -90,18 +90,23 @@ func broadcast(message []byte, code string) {
 		fmt.Println("No session found for code:", code)
 		return
 	}
-	sessionsMu.Lock()
-	defer sessionsMu.Unlock()
 
-	session = sessions[code]
-
+	session.Mu.Lock()
+	var clients []*websocket.Conn
 	for client := range session.Clients {
+		clients = append(clients, client)
+	}
+	session.Mu.Unlock()
+
+	for _, client := range clients {
 		err := client.WriteMessage(websocket.TextMessage, message)
 
 		if err != nil {
 			fmt.Println("Error while sending message to clients", err)
 			client.Close()
+			session.Mu.Lock()
 			delete(session.Clients, client)
+			session.Mu.Unlock()
 		}
 	}
 }

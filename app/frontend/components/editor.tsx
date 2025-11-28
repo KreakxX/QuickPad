@@ -88,12 +88,25 @@ export default function EditorPage({
       const model = editor.getModel();
       if (!model) return;
 
+      setCode(model.getValue());
+
       for (const change of e.changes) {
         const { range, text } = change;
         onEdit(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn, text);
       }
     });
   };
+
+  useEffect(() => {
+    if (editorRef.current) {
+      const currentValue = editorRef.current.getValue();
+      if (currentValue !== code) {
+        applyingRemoteRef.current = true;
+        editorRef.current.setValue(code);
+        applyingRemoteRef.current = false;
+      }
+    }
+  }, [code]);
 
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
@@ -204,7 +217,7 @@ export default function EditorPage({
         onMount={handleMount}
         height="100%"
         defaultLanguage="typescript"
-        value={code}
+        defaultValue={code}
         theme="vs-dark"
         options={{
           lineDecorationsWidth: 8,
