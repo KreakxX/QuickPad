@@ -162,7 +162,7 @@ export default function Toolbar({
             className="bg-[#3c3c3c] border-[#3e3e42] min-w-[200px]"
           >
             <DropdownMenuLabel className="text-[#d4d4d4]">
-              Session {sessionCode ? `- ${sessionCode}` : ""}
+              Session
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-[#3e3e42]" />
             <DropdownMenuItem
