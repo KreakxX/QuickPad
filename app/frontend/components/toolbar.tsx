@@ -126,7 +126,6 @@ export default function Toolbar({
               onClick={() => setFileContent("")}
             >
               New File
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+N</span>
             </DropdownMenuItem>
             <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-xs outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-[#d4d4d4] hover:bg-[#004c97]">
               Open File
@@ -136,14 +135,14 @@ export default function Toolbar({
                 accept="*"
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+O</span>
+
             </div>
             <DropdownMenuItem
               className="text-[#d4d4d4] focus:bg-[#004c97] text-xs py-1"
               onClick={handleSave}
             >
               Save File
-              <span className="ml-auto text-[#858585] text-xs">Ctrl+S</span>
+
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
