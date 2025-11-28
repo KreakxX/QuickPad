@@ -1,4 +1,4 @@
-// editor.tsx - Fixed editor component
+"use client";
 import { message } from "@/app/types/message";
 import { editor } from "monaco-editor";
 import dynamic from "next/dynamic";

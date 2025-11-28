@@ -31,7 +31,13 @@ function createWindow() {
 
   mainWindow.setMenuBarVisibility(false);
   mainWindow.setAutoHideMenuBar(true);
-  mainWindow.loadURL("http://localhost:3000")
+  const isDev = !app.isPackaged;
+
+  if (isDev) {
+    mainWindow.loadURL("http://localhost:3000");
+  } else {
+    mainWindow.loadFile(path.join(__dirname, "../frontend/out/index.html"));
+  }
 
 }
 

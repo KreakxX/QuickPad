@@ -70,7 +70,6 @@ func ws_handler(w http.ResponseWriter, r *http.Request) {
 
 		default:
 			broadcast(message, data["code"])
-			fmt.Println("Drawing done")
 
 		}
 
