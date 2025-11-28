@@ -1,8 +1,0 @@
-shared Markers
-shared Cursors
-OT conflict free merging
-Auto Save
-Save File
-New File creation
-auto detect Code language
-

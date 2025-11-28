@@ -54,11 +54,22 @@ func ws_handler(w http.ResponseWriter, r *http.Request) {
 
 		case "join":
 			session = joinSession(data["code"], conn)
-			fmt.Println("Session Joined")
+			if session != nil {
+				fmt.Println("Session Joined")
+				// Broadcast that a user has joined
+				joinMsg := map[string]string{
+					"action": "user_joined",
+					"userId": data["userId"],
+					"code":   data["code"],
+				}
+				jsonMsg, _ := json.Marshal(joinMsg)
+				broadcast(jsonMsg, data["code"])
+			} else {
+				fmt.Println("Session not found")
+			}
 
 		default:
 			broadcast(message, data["code"])
-			fmt.Println("Drawing done")
 
 		}
 
@@ -79,18 +90,23 @@ func broadcast(message []byte, code string) {
 		fmt.Println("No session found for code:", code)
 		return
 	}
-	sessionsMu.Lock()
-	defer sessionsMu.Unlock()
 
-	session = sessions[code]
-
+	session.Mu.Lock()
+	var clients []*websocket.Conn
 	for client := range session.Clients {
+		clients = append(clients, client)
+	}
+	session.Mu.Unlock()
+
+	for _, client := range clients {
 		err := client.WriteMessage(websocket.TextMessage, message)
 
 		if err != nil {
 			fmt.Println("Error while sending message to clients", err)
 			client.Close()
+			session.Mu.Lock()
 			delete(session.Clients, client)
+			session.Mu.Unlock()
 		}
 	}
 }
