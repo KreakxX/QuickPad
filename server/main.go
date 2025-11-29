@@ -53,10 +53,9 @@ func ws_handler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Session Created")
 
 		case "join":
-			session = joinSession(data["code"], conn)
+			session, syncSource := joinSession(data["code"], conn)
 			if session != nil {
 				fmt.Println("Session Joined")
-				// Broadcast that a user has joined
 				joinMsg := map[string]string{
 					"action": "user_joined",
 					"userId": data["userId"],
@@ -64,9 +63,21 @@ func ws_handler(w http.ResponseWriter, r *http.Request) {
 				}
 				jsonMsg, _ := json.Marshal(joinMsg)
 				broadcast(jsonMsg, data["code"])
+
+				if syncSource != nil {
+					reqSyncMsg := map[string]string{
+						"action":   "request_sync",
+						"targetId": data["userId"],
+					}
+					jsonReq, _ := json.Marshal(reqSyncMsg)
+					syncSource.WriteMessage(websocket.TextMessage, jsonReq)
+				}
 			} else {
 				fmt.Println("Session not found")
 			}
+
+		case "ping":
+			// Keep-alive, do nothing
 
 		default:
 			broadcast(message, data["code"])
@@ -127,21 +138,28 @@ func createNewSession(code string, conn *websocket.Conn) *Session {
 
 }
 
-func joinSession(code string, conn *websocket.Conn) *Session {
+func joinSession(code string, conn *websocket.Conn) (*Session, *websocket.Conn) {
 
 	sessionsMu.Lock()
 	s, exists := sessions[code]
 	sessionsMu.Unlock()
 
 	if !exists {
-		return nil
+		return nil, nil
 	}
 
 	s.Mu.Lock()
+	var syncSource *websocket.Conn
+	for client := range s.Clients {
+		if client != conn {
+			syncSource = client
+			break
+		}
+	}
 	s.Clients[conn] = true
 	s.Mu.Unlock()
 
-	return s
+	return s, syncSource
 }
 
 func main() {

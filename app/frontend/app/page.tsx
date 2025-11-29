@@ -50,8 +50,15 @@ export default function Home() {
         const ws = new WebSocket("ws://localhost:8080");
         wsRef.current = ws;
 
+        let pingInterval: NodeJS.Timeout;
+
         ws.onopen = () => {
           console.log("WebSocket connected");
+          pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ action: "ping" }));
+            }
+          }, 10000);
         };
 
         ws.onmessage = (event) => {
@@ -81,7 +88,7 @@ export default function Home() {
               text: data.text,
             };
             setData(Message);
-          } else if (action === "user_joined") {
+          } else if (action === "request_sync") {
             if (wsRef.current?.readyState === WebSocket.OPEN) {
               wsRef.current.send(JSON.stringify({
                 action: "sync_file",
@@ -97,6 +104,7 @@ export default function Home() {
 
         // try reconnecting after 3 seconds
         ws.onclose = () => {
+          clearInterval(pingInterval);
           setTimeout(connectToWebsocket, 3000);
         };
       } catch (error) {
