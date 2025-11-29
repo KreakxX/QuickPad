@@ -94,11 +94,15 @@ export default function Home() {
                 action: "sync_file",
                 code: sessionCodeRef.current,
                 userId: USER_ID,
+                targetId: data.targetId,
                 text: codeRef.current
               }));
             }
           } else if (action === "sync_file") {
-            setFileContent(data.text);
+            // Only sync if the message is targeted to us, or if it's a legacy broadcast (no targetId)
+            if (!data.targetId || data.targetId === USER_ID) {
+              setFileContent(data.text);
+            }
           }
         };
 

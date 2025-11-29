@@ -101,8 +101,12 @@ export default function EditorPage({
     if (editorRef.current) {
       const currentValue = editorRef.current.getValue();
       if (currentValue !== code) {
+        const pos = editorRef.current.getPosition();
         applyingRemoteRef.current = true;
         editorRef.current.setValue(code);
+        if (pos) {
+          editorRef.current.setPosition(pos);
+        }
         applyingRemoteRef.current = false;
       }
     }
