@@ -1,27 +1,43 @@
 {
   "name": "app",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "electron/main.js",
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
     "dev:electron": "electron electron/main.js",
-    "dev": "concurrently -k \"npm run dev:frontend\" \"npm run dev:electron\""
+    "dev": "concurrently -k \"npm run dev:frontend\" \"npm run dev:electron\"",
+    "build:frontend": "cd frontend && npm run build",
+    "build:electron": "electron-builder",
+    "build": "npm run build:frontend && npm run build:electron"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "build": {
+    "appId": "de.quick.quickpad",
+    "productName": "QuickPad",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "signAndEditExecutable": false
+    }
+  },
   "devDependencies": {
     "@types/prettier": "^2.7.3",
     "concurrently": "^9.2.1",
     "electron": "^39.2.1",
+    "electron-builder": "^26.0.12",
     "prettier": "^2.8.8"
   },
   "dependencies": {
     "@convergencelabs/monaco-collab-ext": "^0.4.0",
     "@monaco-editor/react": "^4.7.0",
     "@shikijs/monaco": "^3.15.0",
-    "node-pty": "^1.0.0",
     "shiki": "^3.15.0"
   }
 }

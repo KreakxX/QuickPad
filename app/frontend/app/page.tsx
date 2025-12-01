@@ -4,22 +4,28 @@ import EditorPage from "@/components/editor";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "@/components/toolbar";
 import { message } from "./types/message";
-import FileBar from "@/components/filebar";
 
 const USER_ID = Math.random().toString(36).substring(7);
 
 export default function Home() {
   const wsRef = useRef<WebSocket | null>(null);
   const [sessionCode, setSessionCode] = useState<string>();
-  const [line, setLine] = useState<number>(1);
-  const [column, setColumn] = useState<number>(1);
   const [data, setData] = useState<message>({ column: 1, line: 1, text: "" });
-  const [text, setText] = useState<string>("");
   const [cursorPosition, setCursorPosition] = useState<number>(1);
   const [cursorLine, setCursorLine] = useState<number>(1);
   const [sharedCursorLine, setSharedCursorLine] = useState<number>(1);
   const [sharedCursorPosition, setSharedCursorPosition] = useState<number>(1);
-  const [fileName, setFileName] = useState<string>("");
+
+  const [selectionStartLine, setSelectionStartLine] = useState<number>(1);
+  const [selectionStartColumn, setSelectionStartColumn] = useState<number>(1);
+  const [selectionEndLine, setSelectionEndLine] = useState<number>(1);
+  const [selectionEndColumn, setSelectionEndColumn] = useState<number>(1);
+
+  const [sharedSelectionStartLine, setSharedSelectionStartLine] = useState<number>(1);
+  const [sharedSelectionStartColumn, setSharedSelectionStartColumn] = useState<number>(1);
+  const [sharedSelectionEndLine, setSharedSelectionEndLine] = useState<number>(1);
+  const [sharedSelectionEndColumn, setSharedSelectionEndColumn] = useState<number>(1);
+
   const [fileContent, setFileContent] = useState<string>("");
   const [code, setCode] = useState<string>(`function greet(name) {
     return "Hello " + name + "!";
@@ -27,14 +33,32 @@ export default function Home() {
   
   console.log(greet("ChatGPT"));`);
 
+  const codeRef = useRef(code);
+  const sessionCodeRef = useRef(sessionCode);
+
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
+
+  useEffect(() => {
+    sessionCodeRef.current = sessionCode;
+  }, [sessionCode]);
+
   useEffect(() => {
     const connectToWebsocket = () => {
       try {
         const ws = new WebSocket("ws://localhost:8080");
         wsRef.current = ws;
 
+        let pingInterval: NodeJS.Timeout;
+
         ws.onopen = () => {
           console.log("WebSocket connected");
+          pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ action: "ping" }));
+            }
+          }, 10000);
         };
 
         ws.onmessage = (event) => {
@@ -50,18 +74,41 @@ export default function Home() {
           if (action === "cursor") {
             setSharedCursorLine(data.cursorLine);
             setSharedCursorPosition(data.cursorPosition);
+          } else if (action === "selection") {
+            setSharedSelectionStartLine(data.startLine);
+            setSharedSelectionStartColumn(data.startColumn);
+            setSharedSelectionEndLine(data.endLine);
+            setSharedSelectionEndColumn(data.endColumn);
           } else if (action === "edit") {
             const Message: message = {
               column: data.column,
               line: data.line,
+              endColumn: data.endColumn,
+              endLine: data.endLine,
               text: data.text,
             };
             setData(Message);
+          } else if (action === "request_sync") {
+            if (wsRef.current?.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({
+                action: "sync_file",
+                code: sessionCodeRef.current,
+                userId: USER_ID,
+                targetId: data.targetId,
+                text: codeRef.current
+              }));
+            }
+          } else if (action === "sync_file") {
+            // Only sync if the message is targeted to us, or if it's a legacy broadcast (no targetId)
+            if (!data.targetId || data.targetId === USER_ID) {
+              setFileContent(data.text);
+            }
           }
         };
 
         // try reconnecting after 3 seconds
         ws.onclose = () => {
+          clearInterval(pingInterval);
           setTimeout(connectToWebsocket, 3000);
         };
       } catch (error) {
@@ -77,53 +124,50 @@ export default function Home() {
     };
   }, []);
 
-  const createSession = () => {
+  const createSession = (code: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
           action: "create",
           userId: USER_ID,
-          code: "123456",
+          code: code,
         })
       );
-      setSessionCode("123456");
+      setSessionCode(code);
     }
   };
 
-  const joinSession = () => {
+  const joinSession = (code: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
           action: "join",
           userId: USER_ID,
-
-          code: "123456",
+          code: code,
         })
       );
-      setSessionCode("123456");
+      setSessionCode(code);
     }
   };
 
-  useEffect(() => {
-    if (!text || !sessionCode) return;
+  const handleEdit = (line: number, column: number, endLine: number, endColumn: number, text: string) => {
+    if (!sessionCodeRef.current) return;
 
-    const sendMessage = () => {
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(
-          JSON.stringify({
-            action: "edit",
-            code: sessionCode,
-            line: line,
-            column: column,
-            userId: USER_ID,
-
-            text: text,
-          })
-        );
-      }
-    };
-    sendMessage();
-  }, [text, line, column]);
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          action: "edit",
+          code: sessionCodeRef.current,
+          line: line,
+          column: column,
+          endLine: endLine,
+          endColumn: endColumn,
+          userId: USER_ID,
+          text: text,
+        })
+      );
+    }
+  };
 
   useEffect(() => {
     if (!sessionCode) return;
@@ -145,6 +189,27 @@ export default function Home() {
   }, [cursorLine, cursorPosition]);
 
   useEffect(() => {
+    if (!sessionCode) return;
+
+    const sendSelectionUpdate = () => {
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            action: "selection",
+            code: sessionCode,
+            userId: USER_ID,
+            startLine: selectionStartLine,
+            startColumn: selectionStartColumn,
+            endLine: selectionEndLine,
+            endColumn: selectionEndColumn,
+          })
+        );
+      }
+    };
+    sendSelectionUpdate();
+  }, [selectionStartLine, selectionStartColumn, selectionEndLine, selectionEndColumn]);
+
+  useEffect(() => {
     setCode(fileContent);
   }, [fileContent]);
 
@@ -153,10 +218,10 @@ export default function Home() {
       <Toolbar
         createSession={createSession}
         joinSession={joinSession}
-        setFileName={setFileName}
         setFileContent={setFileContent}
+        fileContent={code}
+        sessionCode={sessionCode}
       />
-      <FileBar fileName={fileName} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className={`${"h-full"} overflow-hidden`}>
@@ -165,12 +230,21 @@ export default function Home() {
             sharedCursorPosition={sharedCursorPosition}
             setCursorLine={setCursorLine}
             setCursorPosition={setCursorPosition}
-            setLine={setLine}
-            setPosition={setColumn}
+
+            setSelectionStartLine={setSelectionStartLine}
+            setSelectionStartColumn={setSelectionStartColumn}
+            setSelectionEndLine={setSelectionEndLine}
+            setSelectionEndColumn={setSelectionEndColumn}
+
+            sharedSelectionStartLine={sharedSelectionStartLine}
+            sharedSelectionStartColumn={sharedSelectionStartColumn}
+            sharedSelectionEndLine={sharedSelectionEndLine}
+            sharedSelectionEndColumn={sharedSelectionEndColumn}
+
+            onEdit={handleEdit}
             code={code}
             setCode={setCode}
             data={data}
-            setText={setText}
           />
         </div>
       </div>
